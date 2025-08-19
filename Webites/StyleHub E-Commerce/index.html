@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShopMate — Full E‑commerce Starter</title>
+  <meta name="description" content="A ready-to-use front-end e-commerce starter with product listing, cart (localStorage), search, filters, and checkout form." />
+  <style>
+    /* ---------------- Reset ---------------- */
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%}
+    body{font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;color:#0f1724;background:#f6f8fb}
+    a{text-decoration:none;color:inherit}
+
+    /* --------------- Layout --------------- */
+    .container{max-width:1100px;margin:28px auto;padding:18px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo .mark{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#06b6d4,#7c3aed);display:grid;place-items:center;color:white;font-weight:800}
+    .search{flex:1;margin:0 18px}
+    .search input{width:100%;padding:10px 14px;border-radius:10px;border:1px solid #e6eef8}
+    .nav-actions{display:flex;gap:12px;align-items:center}
+    .btn{background:#0f1724;color:white;padding:8px 12px;border-radius:10px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid #e6eef8;color:#0f1724}
+
+    /* --------------- Main area --------------- */
+    .layout{display:grid;grid-template-columns:240px 1fr 360px;gap:18px;margin-top:18px}
+
+    /* Sidebar */
+    .sidebar{background:white;border-radius:12px;padding:14px;border:1px solid #eef3f8}
+    .category{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+    .category button{background:transparent;border:1px solid transparent;padding:8px;border-radius:8px;text-align:left;cursor:pointer}
+    .category button.active{background:#f1f5f9;border-color:#e2e8f0}
+
+    /* Product grid */
+    .products{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+    .product{background:white;border-radius:12px;padding:12px;border:1px solid #eef3f8;display:flex;flex-direction:column;gap:10px}
+    .thumb{height:160px;border-radius:10px;background-size:cover;background-position:center}
+    .p-title{font-weight:700}
+    .p-price{font-weight:800;color:#0f1724}
+    .p-meta{color:#64748b;font-size:13px}
+    .p-actions{margin-top:auto;display:flex;gap:8px}
+
+    /* Cart */
+    .cart{background:white;border-radius:12px;padding:14px;border:1px solid #eef3f8;position:sticky;top:18px;height:fit-content}
+    .cart h3{margin-bottom:8px}
+    .cart-list{display:flex;flex-direction:column;gap:8px;max-height:320px;overflow:auto;padding-right:6px}
+    .cart-item{display:flex;gap:10px;align-items:center}
+    .cart-item .ci-thumb{width:48px;height:48px;border-radius:8px;background-size:cover;background-position:center}
+    .qty{display:flex;gap:6px;align-items:center}
+    .checkout{margin-top:12px}
+
+    /* Checkout form modal */
+    .modal{position:fixed;inset:0;background:rgba(2,6,23,0.4);display:none;align-items:center;justify-content:center;padding:20px}
+    .modal.open{display:flex}
+    .modal-card{background:white;border-radius:12px;padding:18px;width:100%;max-width:720px;border:1px solid #e6eef8}
+    .two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    input,select,textarea{padding:10px;border-radius:8px;border:1px solid #e6eef8}
+
+    /* footer */
+    footer{margin-top:24px;text-align:center;color:#64748b}
+
+    /* responsive */
+    @media (max-width:1000px){.layout{grid-template-columns:1fr;}.search{order:3}.nav-actions{order:2}}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <div class="mark">SM</div>
+        <div>
+          <div style="font-weight:800">ShopMate</div>
+          <div style="font-size:13px;color:#64748b">A lightweight e‑commerce starter</div>
+        </div>
+      </div>
+
+      <div class="search">
+        <input id="searchInput" placeholder="Search products, e.g. shoes, phone" />
+      </div>
+
+      <div class="nav-actions">
+        <div id="cartBtn" style="cursor:pointer">🛒 <span id="cartCount">0</span></div>
+        <button class="btn" id="openCheckout">Checkout</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="sidebar">
+        <h3>Categories</h3>
+        <div class="category" id="categories"></div>
+
+        <h3 style="margin-top:12px">Sort</h3>
+        <select id="sortSel" style="width:100%;padding:8px;border-radius:8px;border:1px solid #eef3f8;margin-top:8px">
+          <option value="default">Default</option>
+          <option value="price_asc">Price: Low → High</option>
+          <option value="price_desc">Price: High → Low</option>
+          <option value="alpha">Name: A → Z</option>
+        </select>
+      </aside>
+
+      <section>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h2 id="resultsTitle">All Products</h2>
+          <div class="p-meta" id="resultsMeta">Showing <span id="resultCount">0</span> products</div>
+        </div>
+        <div class="products" id="productGrid"></div>
+      </section>
+
+      <aside class="cart" id="cartSide">
+        <h3>Cart</h3>
+        <div class="cart-list" id="cartList"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+          <div>Total:</div>
+          <div style="font-weight:800">$<span id="cartTotal">0</span></div>
+        </div>
+        <div class="checkout">
+          <button class="btn" id="btnCheckout">Proceed to Checkout</button>
+          <button class="btn ghost" id="clearCart">Clear</button>
+        </div>
+      </aside>
+    </main>
+
+    <footer>
+      Built with ❤️ — Frontend only demo. Replace with backend APIs for production.
+    </footer>
+  </div>
+
+  <!-- Checkout Modal -->
+  <div class="modal" id="modal">
+    <div class="modal-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <h3>Checkout</h3>
+        <button class="btn ghost" id="closeModal">Close</button>
+      </div>
+      <form id="checkoutForm">
+        <div class="two-col">
+          <div class="field">
+            <label>Full name</label>
+            <input name="name" required />
+          </div>
+          <div class="field">
+            <label>Email</label>
+            <input name="email" type="email" required />
+          </div>
+          <div class="field">
+            <label>Phone</label>
+            <input name="phone" required />
+          </div>
+          <div class="field">
+            <label>Country</label>
+            <select name="country">
+              <option>India</option>
+              <option>United States</option>
+              <option>United Kingdom</option>
+            </select>
+          </div>
+          <div class="field" style="grid-column:1/3">
+            <label>Shipping address</label>
+            <textarea name="address" rows="3" required></textarea>
+          </div>
+        </div>
+
+        <h4 style="margin-top:12px">Payment (demo)</h4>
+        <div class="two-col">
+          <div class="field">
+            <label>Card number</label>
+            <input name="card" placeholder="4242 4242 4242 4242" required />
+          </div>
+          <div class="field">
+            <label>Expiry / CVC</label>
+            <input name="exp" placeholder="MM/YY • CVC" required />
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+          <div style="font-weight:800">Amount: $<span id="modalTotal">0</span></div>
+          <button class="btn" type="submit">Pay now</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ----------------- Data (sample products) -----------------
+    const PRODUCTS = [
+      {id:1,title:'Classic Leather Sneakers',price:69.99,category:'Shoes',img:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=1200&auto=format&fit=crop&s=0',desc:'Comfortable everyday sneakers.'},
+      {id:2,title:'Wireless Headphones',price:129.00,category:'Electronics',img:'https://images.unsplash.com/photo-1518444028874-3d0a6b18b5a9?q=80&w=1200&auto=format&fit=crop&s=0',desc:'Noise-cancelling over-ear headphones.'},
+      {id:3,title:'Organic Cotton T-Shirt',price:25.00,category:'Clothing',img:'https://images.unsplash.com/photo-1520975914524-5c2d6f9b7f0d?q=80&w=1200&auto=format&fit=crop&s=0',desc:'Soft breathable tee.'},
+      {id:4,title:'Smart Watch Pro',price:189.99,category:'Electronics',img:'https://images.unsplash.com/photo-1519744792095-2f2205e87b6f?q=80&w=1200&auto=format&fit=crop&s=0',desc:'Fitness tracking and notifications.'},
+      {id:5,title:'Running Shoes',price:89.50,category:'Shoes',img:'https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=1200&auto=format&fit=crop&s=0',desc:'Lightweight running shoes.'},
+      {id:6,title:'Denim Jacket',price:69.00,category:'Clothing',img:'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=1200&auto=format&fit=crop&s=0',desc:'Classic denim jacket.'},
+      {id:7,title:'Bluetooth Speaker',price:49.99,category:'Electronics',img:'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=1200&auto=format&fit=crop&s=0',desc:'Portable speaker with rich sound.'},
+      {id:8,title:'Sunglasses',price:19.99,category:'Accessories',img:'https://images.unsplash.com/photo-1520975698513-6b2d0b3fae8f?q=80&w=1200&auto=format&fit=crop&s=0',desc:'UV protection sunglasses.'}
+    ];
+
+    // ----------------- State -----------------
+    let state = {
+      products: PRODUCTS.slice(),
+      filtered: PRODUCTS.slice(),
+      cart: JSON.parse(localStorage.getItem('shopmate_cart')||'[]')
+    };
+
+    // ----------------- Utilities -----------------
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    function saveCart(){ localStorage.setItem('shopmate_cart', JSON.stringify(state.cart)); renderCart(); }
+
+    function format(n){ return Number(n).toFixed(2); }
+
+    // ----------------- Renderers -----------------
+    function renderProducts(list){
+      const grid = $('#productGrid'); grid.innerHTML='';
+      list.forEach(p=>{
+        const el = document.createElement('article'); el.className='product';
+        el.innerHTML = `
+          <div class="thumb" style="background-image:url('${p.img}')"></div>
+          <div class="p-title">${p.title}</div>
+          <div class="p-meta">${p.desc}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div class="p-price">$${format(p.price)}</div>
+            <div class="p-meta">${p.category}</div>
+          </div>
+          <div class="p-actions">
+            <button class="btn" data-add="${p.id}">Add to cart</button>
+            <button class="btn ghost" data-view="${p.id}">View</button>
+          </div>
+        `;
+        grid.appendChild(el);
+      });
+      $('#resultCount').innerText = list.length;
+    }
+
+    function renderCategories(){
+      const cats = ['All', ...new Set(PRODUCTS.map(p=>p.category))];
+      const wrap = $('#categories'); wrap.innerHTML='';
+      cats.forEach(c=>{
+        const btn = document.createElement('button'); btn.innerText = c; btn.dataset.cat = c; if(c==='All') btn.classList.add('active');
+        btn.addEventListener('click',()=>{ $$('#categories button').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); applyFilter(c); });
+        wrap.appendChild(btn);
+      });
+    }
+
+    function renderCart(){
+      const list = $('#cartList'); list.innerHTML='';
+      let total=0; let count=0;
+      state.cart.forEach(item=>{
+        const prod = PRODUCTS.find(p=>p.id===item.id);
+        const row = document.createElement('div'); row.className='cart-item';
+        row.innerHTML = `
+          <div style="display:flex;gap:8px;align-items:center;width:100%">
+            <div class="ci-thumb" style="background-image:url('${prod.img}')"></div>
+            <div style="flex:1">
+              <div style="font-weight:700">${prod.title}</div>
+              <div style="font-size:13px;color:#64748b">$${format(prod.price)} × ${item.qty}</div>
+            </div>
+            <div class="qty">
+              <button data-dec="${item.id}" class="btn ghost">-</button>
+              <div>${item.qty}</div>
+              <button data-inc="${item.id}" class="btn ghost">+</button>
+            </div>
+          </div>
+        `;
+        list.appendChild(row);
+        total += prod.price * item.qty; count += item.qty;
+      });
+      $('#cartTotal').innerText = format(total);
+      $('#cartCount').innerText = count;
+
+      // wire cart buttons
+      $$('#cartList [data-inc]').forEach(b=>b.addEventListener('click',()=>{ changeQty(Number(b.dataset.inc),1); }));
+      $$('#cartList [data-dec]').forEach(b=>b.addEventListener('click',()=>{ changeQty(Number(b.dataset.dec),-1); }));
+    }
+
+    function changeQty(id,delta){
+      const idx = state.cart.findIndex(i=>i.id===id);
+      if(idx===-1) return;
+      state.cart[idx].qty += delta;
+      if(state.cart[idx].qty<=0) state.cart.splice(idx,1);
+      saveCart();
+    }
+
+    function addToCart(id,qty=1){
+      const idx = state.cart.findIndex(i=>i.id===id);
+      if(idx===-1) state.cart.push({id,qty}); else state.cart[idx].qty += qty;
+      saveCart();
+      toast('Added to cart');
+    }
+
+    // ----------------- Filters & Search -----------------
+    function applyFilter(cat){
+      let list = PRODUCTS.slice();
+      if(cat && cat!=='All') list = list.filter(p=>p.category===cat);
+      // apply search
+      const q = $('#searchInput').value.trim().toLowerCase();
+      if(q) list = list.filter(p=>p.title.toLowerCase().includes(q) || p.desc.toLowerCase().includes(q));
+      // apply sort
+      const sort = $('#sortSel').value;
+      if(sort==='price_asc') list.sort((a,b)=>a.price-b.price);
+      if(sort==='price_desc') list.sort((a,b)=>b.price-a.price);
+      if(sort==='alpha') list.sort((a,b)=>a.title.localeCompare(b.title));
+      state.filtered = list;
+      renderProducts(list);
+    }
+
+    // ----------------- Events -----------------
+    document.addEventListener('click',e=>{
+      const add = e.target.closest('[data-add]'); if(add){ addToCart(Number(add.dataset.add)); }
+      const view = e.target.closest('[data-view]'); if(view){ const id=Number(view.dataset.view); const p = PRODUCTS.find(x=>x.id===id); alert(p.title + '\n\n' + p.desc + '\n$' + format(p.price)); }
+    });
+
+    $('#searchInput').addEventListener('input',()=> applyFilter($('#categories button.active')?.dataset.cat || 'All'));
+    $('#sortSel').addEventListener('change',()=> applyFilter($('#categories button.active')?.dataset.cat || 'All'));
+
+    // cart actions
+    $('#btnCheckout').addEventListener('click',()=> openModal());
+    $('#openCheckout').addEventListener('click',()=> openModal());
+    $('#clearCart').addEventListener('click',()=> { state.cart=[]; saveCart(); });
+
+    function openModal(){
+      if(state.cart.length===0){ toast('Cart is empty'); return; }
+      $('#modal').classList.add('open'); $('#modalTotal').innerText = $('#cartTotal').innerText;
+    }
+    $('#closeModal').addEventListener('click',()=> $('#modal').classList.remove('open'));
+
+    // checkout submit (demo)
+    $('#checkoutForm').addEventListener('submit',e=>{
+      e.preventDefault();
+      // naive validation
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      // create order summary
+      const order = {
+        id: 'ORD' + Date.now(),
+        items: state.cart.map(ci=>({...ci,product:PRODUCTS.find(p=>p.id===ci.id)})),
+        total: Number($('#cartTotal').innerText)
+      };
+      console.log('Order placed (demo):', order, data);
+      // clear cart
+      state.cart=[]; saveCart();
+      $('#modal').classList.remove('open');
+      toast('Payment successful — Order placed');
+    });
+
+    // simple toast
+    function toast(msg){
+      const t = document.createElement('div'); t.innerText = msg; t.style = 'position:fixed;right:18px;bottom:18px;background:#0f1724;color:white;padding:10px 14px;border-radius:8px;z-index:9999'; document.body.appendChild(t);
+      setTimeout(()=>{ t.style.opacity='0'; setTimeout(()=>t.remove(),400) },1800);
+    }
+
+    // init
+    (function init(){
+      renderCategories(); applyFilter('All'); renderCart();
+    })();
+
+  </script>
+
+</body>
+</html>
