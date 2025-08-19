@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Advanced UI Pack — HTML • CSS • JS Only</title>
+  <meta name="description" content="Three advanced UI templates (landing, gallery, dashboard) using only HTML, CSS, and vanilla JS."/>
+  <style>
+    /* ---------------- Base / Theme ---------------- */
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0b1220;--panel:#0e172a;--text:#e6eef8;--muted:#9aa7bd;--brand:#7c3aed;--brand2:#06b6d4;--ring:rgba(255,255,255,.08);
+      --radius:16px;--glass:rgba(255,255,255,.04);--glass-2:rgba(255,255,255,.02)
+    }
+    body{font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Roboto,Arial;background:radial-gradient(1200px 600px at 20% -10%,rgba(124,58,237,.25),transparent 40%),radial-gradient(1200px 600px at 100% 0,rgba(6,182,212,.18),transparent 46%),var(--bg);color:var(--text);line-height:1.5;min-height:100vh}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1200px;margin:28px auto;padding:18px}
+
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand2));display:grid;place-items:center;font-weight:900;box-shadow:0 8px 30px rgba(2,6,23,.6)}
+    nav.tabs{display:flex;gap:8px;flex-wrap:wrap}
+    .tab{padding:8px 12px;border-radius:12px;border:1px solid var(--glass);background:var(--glass-2);cursor:pointer;color:var(--text)}
+    .tab.active{background:linear-gradient(90deg,rgba(124,58,237,.18),rgba(6,182,212,.1));box-shadow:0 8px 32px rgba(2,6,23,.55)}
+
+    .template{display:none;border:1px solid var(--glass);background:linear-gradient(180deg,var(--glass),transparent);border-radius:var(--radius);padding:18px;box-shadow:0 14px 40px rgba(2,6,23,.6)}
+    .template.active{display:block}
+
+    /* -------------- Template 1: Parallax Landing -------------- */
+    .hero{position:relative;overflow:hidden;border-radius:14px}
+    .hero .layer{position:absolute;inset:0;background-size:cover;background-position:center;will-change:transform}
+    .hero .layer.bg1{background-image:url('https://images.unsplash.com/photo-1520974722074-9b32a0d81d47?q=80&w=1600&auto=format&fit=crop');filter:brightness(.6)}
+    .hero .layer.grad{background:radial-gradient(800px 400px at 10% -10%,rgba(124,58,237,.5),transparent 40%),radial-gradient(800px 400px at 100% 0,rgba(6,182,212,.5),transparent 46%)}
+    .hero .content{position:relative;z-index:2;padding:70px 24px 80px;display:grid;grid-template-columns:1.2fr .8fr;gap:20px}
+    .badge{display:inline-flex;gap:6px;align-items:center;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);backdrop-filter:blur(8px);border:1px solid var(--ring);font-size:12px;color:#d9e3f4}
+    .hero h1{font-size:40px;line-height:1.05;letter-spacing:-.5px}
+    .hero p{color:var(--muted);margin-top:8px}
+    .btn{border:none;border-radius:12px;padding:12px 16px;background:linear-gradient(90deg,var(--brand),#5b21b6);color:white;font-weight:800;cursor:pointer}
+    .btn.ghost{background:transparent;border:1px solid var(--ring);color:var(--text)}
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+    .stat{background:rgba(255,255,255,.06);border:1px solid var(--ring);border-radius:12px;padding:12px;text-align:center}
+    .phone{border:1px solid var(--ring);border-radius:20px;overflow:hidden;background:rgba(0,0,0,.3);backdrop-filter:blur(6px)}
+    .phone img{display:block;width:100%;height:360px;object-fit:cover}
+
+    /* -------------- Template 2: Gallery + Tilt Cards -------------- */
+    .gallery-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--ring);cursor:pointer;font-size:12px}
+    .grid{columns:1 280px;column-gap:14px}
+    .tile{break-inside:avoid;background:rgba(255,255,255,.06);border:1px solid var(--ring);border-radius:16px;margin:0 0 14px;overflow:hidden;position:relative;transform-style:preserve-3d;transition:transform .18s ease}
+    .tile img{width:100%;height:auto;display:block}
+    .tile .cap{padding:10px;color:#d2dbee}
+    .tile:hover{transform:rotateX(3deg) rotateY(-3deg) translateY(-4px)}
+
+    /* -------------- Template 3: Pro Dashboard (Canvas charts) -------------- */
+    .dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+    .kpi{background:rgba(255,255,255,.06);border:1px solid var(--ring);border-radius:12px;padding:12px}
+    .kpi .k{color:var(--muted);font-size:12px}
+    .kpi .v{font-weight:900;font-size:22px;margin-top:6px}
+    .panels{display:grid;grid-template-columns:1fr 360px;gap:14px;margin-top:14px}
+    .panel{background:rgba(255,255,255,.06);border:1px solid var(--ring);border-radius:12px;padding:12px}
+    canvas{width:100%;height:240px}
+
+    /* -------------- Responsive -------------- */
+    @media (max-width:980px){.hero .content{grid-template-columns:1fr}.dash-grid{grid-template-columns:repeat(2,1fr)}.panels{grid-template-columns:1fr}}
+    @media (max-width:560px){.dash-grid{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr}.hero h1{font-size:32px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">AU</div>
+        <div>
+          <div style="font-weight:900">Advanced UI Pack</div>
+          <div style="color:var(--muted);font-size:12px">Vanilla HTML • CSS • JS only</div>
+        </div>
+      </div>
+      <nav class="tabs">
+        <button class="tab active" data-tpl="tpl1">Parallax Landing</button>
+        <button class="tab" data-tpl="tpl2">Gallery + Tilt</button>
+        <button class="tab" data-tpl="tpl3">Pro Dashboard</button>
+      </nav>
+    </header>
+
+    <!-- Template 1: Parallax Landing -->
+    <section id="tpl1" class="template active">
+      <div class="hero" id="hero">
+        <div class="layer bg1" data-speed="0.2"></div>
+        <div class="layer grad" data-speed="0.4"></div>
+        <div class="content">
+          <div>
+            <span class="badge">✨ New — Motion-first UI kit</span>
+            <h1>Design bold, ship faster.<br/>No framework, just clean code.</h1>
+            <p>Create premium landings with parallax, glass cards and responsive layout. All effects are pure CSS + vanilla JS.</p>
+            <div style="display:flex;gap:10px;margin-top:12px">
+              <button class="btn" onclick="toast('Getting started…')">Get Started</button>
+              <button class="btn ghost" onclick="toast('Preview components')">Preview Kit</button>
+            </div>
+            <div class="stats">
+              <div class="stat"><div class="k">Components</div><div class="v" data-count="120">0</div></div>
+              <div class="stat"><div class="k">Downloads</div><div class="v" data-count="5400">0</div></div>
+              <div class="stat"><div class="k">Stars</div><div class="v" data-count="2.4">0</div></div>
+            </div>
+          </div>
+          <aside class="phone"><img src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200&auto=format&fit=crop" alt="preview"/></aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- Template 2: Masonry Gallery + Tilt Cards + Filters -->
+    <section id="tpl2" class="template">
+      <div class="gallery-head">
+        <div>
+          <h2 style="font-weight:900">Showcase</h2>
+          <div style="color:var(--muted);font-size:12px">Masonry layout, hover tilt, category filters</div>
+        </div>
+        <div class="chips">
+          <button class="chip active" data-filter="all">All</button>
+          <button class="chip" data-filter="ui">UI</button>
+          <button class="chip" data-filter="app">App</button>
+          <button class="chip" data-filter="photo">Photo</button>
+        </div>
+      </div>
+      <div class="grid" id="grid">
+        <!-- tiles injected by JS -->
+      </div>
+    </section>
+
+    <!-- Template 3: Pro Dashboard (animated KPIs + Canvas charts) -->
+    <section id="tpl3" class="template">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div>
+          <h2 style="font-weight:900">Realtime Analytics</h2>
+          <div style="color:var(--muted);font-size:12px">Vanilla Canvas charts + counters</div>
+        </div>
+        <div>
+          <label for="days" style="font-size:12px;color:var(--muted)">Days:</label>
+          <select id="days" style="padding:8px;border-radius:10px;background:transparent;color:var(--text);border:1px solid var(--ring)">
+            <option>7</option><option selected>14</option><option>30</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+        <div class="kpi"><div class="k">Active users</div><div class="v" id="kpiUsers">0</div></div>
+        <div class="kpi"><div class="k">Revenue</div><div class="v" id="kpiRevenue">₹ 0</div></div>
+        <div class="kpi"><div class="k">Conversion</div><div class="v" id="kpiConv">0%</div></div>
+      </div>
+
+      <div class="panels">
+        <div class="panel"><canvas id="line"></canvas></div>
+        <div class="panel"><canvas id="bars"></canvas></div>
+      </div>
+    </section>
+
+    <footer style="text-align:center;color:var(--muted);margin-top:16px">Copy any template and adapt. Need this split into separate files (CSS/JS) or integrated into your e‑commerce site? Tell me and I’ll wire it up.</footer>
+  </div>
+
+  <script>
+    // ---------------- Tabs ----------------
+    document.querySelectorAll('.tab').forEach(b=>{
+      b.addEventListener('click',()=>{
+        document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        const id = b.dataset.tpl;
+        document.querySelectorAll('.template').forEach(t=>t.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+      })
+    })
+
+    // ---------------- Toast ----------------
+    function toast(msg){
+      const t = document.createElement('div');
+      t.textContent = msg; t.style = 'position:fixed;right:18px;bottom:18px;background:#0b1220;color:#fff;padding:10px 12px;border-radius:10px;border:1px solid var(--ring);z-index:9999';
+      document.body.appendChild(t); setTimeout(()=>{t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),300)},1700);
+    }
+
+    // -------- Template 1: Parallax + Counters --------
+    (function(){
+      const hero = document.getElementById('hero');
+      const layers = hero.querySelectorAll('.layer');
+      window.addEventListener('scroll',()=>{
+        const r = hero.getBoundingClientRect();
+        const prog = Math.max(0, Math.min(1, 1 - r.top/400));
+        layers.forEach(el=>{
+          const sp = Number(el.dataset.speed||0.2);
+          el.style.transform = `translateY(${prog*sp* -80}px)`;
+        })
+      });
+      // counters
+      const nums = hero.querySelectorAll('[data-count]');
+      const io = new IntersectionObserver(entries=>{
+        entries.forEach(e=>{
+          if(e.isIntersecting){
+            const el = e.target; const final = Number(el.dataset.count); let cur=0; const step = final/40; // 40 frames
+            const int = setInterval(()=>{ cur+=step; el.textContent = final<10? cur.toFixed(1) : Math.floor(cur); if(cur>=final){ el.textContent = final; clearInterval(int);} }, 24);
+            io.unobserve(el);
+          }
+        })
+      },{threshold:.6});
+      nums.forEach(n=>io.observe(n));
+    })();
+
+    // -------- Template 2: Gallery + Filters + Tilt --------
+    (function(){
+      const data = [
+        {t:'Finance UI',tag:'ui',img:'https://images.unsplash.com/photo-1551281044-8b89a09a8d0c?q=80&w=1200&auto=format&fit=crop'},
+        {t:'Travel App',tag:'app',img:'https://images.unsplash.com/photo-1529078155058-5d716f45d604?q=80&w=1200&auto=format&fit=crop'},
+        {t:'Food Photo',tag:'photo',img:'https://images.unsplash.com/photo-1490818387583-1baba5e638af?q=80&w=1200&auto=format&fit=crop'},
+        {t:'Storefront',tag:'ui',img:'https://images.unsplash.com/photo-1515165562835-c3b8c8e3b3d1?q=80&w=1200&auto=format&fit=crop'},
+        {t:'Crypto App',tag:'app',img:'https://images.unsplash.com/photo-1516245834210-c4c142787335?q=80&w=1200&auto=format&fit=crop'},
+        {t:'Lifestyle Shot',tag:'photo',img:'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=1200&auto=format&fit=crop'},
+      ];
+      const grid = document.getElementById('grid');
+      function render(list){
+        grid.innerHTML = '';
+        list.forEach(item=>{
+          const card = document.createElement('article'); card.className='tile';
+          card.innerHTML = `<img src="${item.img}" alt="${item.t}"><div class="cap">${item.t}</div>`;
+          card.addEventListener('mousemove', (e)=>{
+            const r = card.getBoundingClientRect(); const x = e.clientX - r.left; const y = e.clientY - r.top;
+            const rx = ((y/r.height)-.5)*-8; const ry=((x/r.width)-.5)*8; card.style.transform=`rotateX(${rx}deg) rotateY(${ry}deg) translateY(-4px)`;
+          });
+          card.addEventListener('mouseleave',()=> card.style.transform='');
+          grid.appendChild(card);
+        })
+      }
+      render(data);
+      document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+        document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active')); c.classList.add('active');
+        const f = c.dataset.filter; render(f==='all'?data:data.filter(d=>d.tag===f));
+      }));
+    })();
+
+    // -------- Template 3: Canvas Charts + KPIs --------
+    (function(){
+      const line = document.getElementById('line'); const bars = document.getElementById('bars');
+      const usersEl = document.getElementById('kpiUsers'); const revEl = document.getElementById('kpiRevenue'); const convEl = document.getElementById('kpiConv');
+      const daysSel = document.getElementById('days');
+
+      function gen(n){ return Array.from({length:n},(_,i)=>({ x:i+1, users: 400+Math.random()*300, revenue: 1200+Math.random()*1500 })); }
+      function sum(arr,key){ return Math.round(arr.reduce((a,b)=>a+(b[key]||0),0)); }
+
+      function drawLine(canvas,pts){
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio||1; const w = canvas.clientWidth*dpr, h = canvas.clientHeight*dpr; canvas.width=w; canvas.height=h; ctx.clearRect(0,0,w,h);
+        const pad=30; const xs = pts.map(p=>p.x), ys=pts.map(p=>p.users);
+        const xMax = Math.max(...xs), yMax=Math.max(...ys)*1.1;
+        ctx.lineWidth=2; ctx.strokeStyle='#7c3aed'; ctx.beginPath();
+        pts.forEach((p,i)=>{
+          const x = pad + (w-pad*2)*(p.x-1)/(xMax-1); const y = h-pad - (h-pad*2)*(p.users)/yMax;
+          if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        });
+        ctx.stroke();
+        // gradient fill
+        const g = ctx.createLinearGradient(0,0,0,h); g.addColorStop(0,'rgba(124,58,237,.35)'); g.addColorStop(1,'rgba(124,58,237,0)');
+        ctx.fillStyle=g; ctx.lineTo(w-pad,h-pad); ctx.lineTo(pad,h-pad); ctx.closePath(); ctx.fill();
+      }
+      function drawBars(canvas,pts){
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio||1; const w = canvas.clientWidth*dpr, h = canvas.clientHeight*dpr; canvas.width=w; canvas.height=h; ctx.clearRect(0,0,w,h);
+        const pad=30; const ys=pts.map(p=>p.revenue); const yMax=Math.max(...ys)*1.2; const bar=(w-pad*2)/pts.length*0.6;
+        ctx.fillStyle='#06b6d4';
+        pts.forEach((p,i)=>{
+          const x = pad + i*((w-pad*2)/pts.length) + ((w-pad*2)/pts.length - bar)/2; const y = h-pad - (h-pad*2)*(p.revenue)/yMax; const bh = h-pad-y;
+          ctx.fillRect(x,y,bar,bh);
+        })
+      }
+      function animateKPI(el,to,prefix='',suffix=''){ let cur=0; const step=to/30; const id=setInterval(()=>{ cur+=step; if(cur>=to){cur=to; clearInterval(id);} el.textContent = `${prefix}${Math.round(cur).toLocaleString()}${suffix}`; },24); }
+
+      function update(){
+        const n = Number(daysSel.value)||14; const pts = gen(n);
+        drawLine(line,pts); drawBars(bars,pts);
+        animateKPI(usersEl,sum(pts,'users')); animateKPI(revEl,sum(pts,'revenue'),'₹ ');
+        convEl.textContent = (3+Math.random()*2).toFixed(2)+'%';
+      }
+      daysSel.addEventListener('change',update);
+      window.addEventListener('resize',()=>{ update(); });
+      update();
+    })();
+  </script>
+</body>
+</html>
